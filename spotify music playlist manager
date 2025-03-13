@@ -1,0 +1,183 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Structure for a Song
+typedef struct Song {
+    char title[50];
+    char artist[50];
+    float duration;
+    struct Song* next;
+    struct Song* prev;
+} Song;
+
+// Head and Tail Pointers
+Song* head = NULL;
+Song* tail = NULL;
+Song* current = NULL;
+
+// Function to create a new song
+Song* createSong(char title[], char artist[], float duration) {
+    Song* newSong = (Song*)malloc(sizeof(Song));
+    strcpy(newSong->title, title);
+    strcpy(newSong->artist, artist);
+    newSong->duration = duration;
+    newSong->next = NULL;
+    newSong->prev = NULL;
+    return newSong;
+}
+
+// Add song to the playlist
+void addSong(char title[], char artist[], float duration) {
+    Song* newSong = createSong(title, artist, duration);
+    if (head == NULL) {
+        head = newSong;
+        tail = newSong;
+        current = newSong;
+    } else {
+        tail->next = newSong;
+        newSong->prev = tail;
+        tail = newSong;
+    }
+    printf("Added: %s by %s\n", title, artist);
+}
+
+// Display all songs in the playlist
+void displayPlaylist() {
+    Song* temp = head;
+    if (temp == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+    printf("\n--- Playlist ---\n");
+    while (temp != NULL) {
+        printf("%s - %s (%.2f min)\n", temp->title, temp->artist, temp->duration);
+        temp = temp->next;
+    }
+    printf("-----------------\n");
+}
+
+// Play next song
+void playNext() {
+    if (current == NULL || current->next == NULL) {
+        printf("End of Playlist!\n");
+    } else {
+        current = current->next;
+        printf("Now Playing: %s by %s\n", current->title, current->artist);
+    }
+}
+
+// Play previous song
+void playPrev() {
+    if (current == NULL || current->prev == NULL) {
+        printf("Start of Playlist!\n");
+    } else {
+        current = current->prev;
+        printf("Now Playing: %s by %s\n", current->title, current->artist);
+    }
+}
+
+// Search for a song
+void searchSong(char title[]) {
+    Song* temp = head;
+    while (temp != NULL) {
+        if (strcmp(temp->title, title) == 0) {
+            printf("Found: %s by %s\n", temp->title, temp->artist);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Song not found!\n");
+}
+
+// Delete a song from the playlist
+void deleteSong(char title[]) {
+    Song* temp = head;
+    while (temp != NULL) {
+        if (strcmp(temp->title, title) == 0) {
+            if (temp->prev) temp->prev->next = temp->next;
+            if (temp->next) temp->next->prev = temp->prev;
+            if (temp == head) head = temp->next;
+            if (temp == tail) tail = temp->prev;
+            if (temp == current) current = temp->next ? temp->next : temp->prev;
+            free(temp);
+            printf("Deleted: %s\n", title);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Song not found!\n");
+}
+
+// Main Menu
+void menu() {
+    printf("\nMusic Player Menu:\n");
+    printf("1. Add Song\n");
+    printf("2. Display Playlist\n");
+    printf("3. Play Next\n");
+    printf("4. Play Previous\n");
+    printf("5. Search Song\n");
+    printf("6. Delete Song\n");
+    printf("7. Exit\n");
+}
+
+int main() {
+    int choice;
+    char title[50], artist[50];
+    float duration;
+
+    while (1) {
+        menu();
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+        getchar();  // To consume newline character
+
+        switch (choice) {
+            case 1:
+                printf("Enter Song Title: ");
+                fgets(title, 50, stdin);
+                title[strcspn(title, "\n")] = 0;
+                printf("Enter Artist: ");
+                fgets(artist, 50, stdin);
+                artist[strcspn(artist, "\n")] = 0;
+                printf("Enter Duration (min): ");
+                scanf("%f", &duration);
+                addSong(title, artist, duration);
+                break;
+
+            case 2:
+                displayPlaylist();
+                break;
+
+            case 3:
+                playNext();
+                break;
+
+            case 4:
+                playPrev();
+                break;
+
+            case 5:
+                printf("Enter Song Title to Search: ");
+                fgets(title, 50, stdin);
+                title[strcspn(title, "\n")] = 0;
+                searchSong(title);
+                break;
+
+            case 6:
+                printf("Enter Song Title to Delete: ");
+                fgets(title, 50, stdin);
+                title[strcspn(title, "\n")] = 0;
+                deleteSong(title);
+                break;
+
+            case 7:
+                printf("Exiting Music Player...\n");
+                exit(0);
+
+            default:
+                printf("Invalid choice! Try again.\n");
+        }
+    }
+    return 0;
+}
